@@ -188,7 +188,7 @@ static switch_bool_t amd_handle_silence_frame(amd_vad_t *vad, const switch_frame
 	if (vad->silence_duration >= globals.between_words_silence) {
 		if (vad->state != VAD_STATE_IN_SILENCE) {
 			switch_log_printf(
-				SWITCH_CHANNEL_SESSION_LOG(vad->session),
+				SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 				SWITCH_LOG_DEBUG,
 				"AMD: Changed state to VAD_STATE_IN_SILENCE\n");
 		}
@@ -199,7 +199,7 @@ static switch_bool_t amd_handle_silence_frame(amd_vad_t *vad, const switch_frame
 
 	if (vad->in_initial_silence && vad->silence_duration >= globals.initial_silence) {
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: MACHINE (silence_duration: %d, initial_silence: %d)\n",
 			vad->silence_duration,
@@ -212,7 +212,7 @@ static switch_bool_t amd_handle_silence_frame(amd_vad_t *vad, const switch_frame
 
 	if (vad->silence_duration >= globals.after_greeting_silence && vad->in_greeting) {
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: HUMAN (silence_duration: %d, after_greeting_silence: %d)\n",
 			vad->silence_duration,
@@ -234,7 +234,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 		vad->words++;
 
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: Word detected (words: %d)\n",
 			vad->words);
@@ -244,7 +244,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 
 	if (vad->voice_duration >= globals.maximum_word_length) {
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: MACHINE (voice_duration: %d, maximum_word_length: %d)\n",
 			vad->voice_duration,
@@ -257,7 +257,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 
 	if (vad->words >= globals.maximum_number_of_words) {
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: MACHINE (words: %d, maximum_number_of_words: %d)\n",
 			vad->words,
@@ -270,7 +270,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 
 	if (vad->in_greeting && vad->voice_duration >= globals.greeting) {
 		switch_log_printf(
-			SWITCH_CHANNEL_SESSION_LOG(vad->session),
+			SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 			SWITCH_LOG_DEBUG,
 			"AMD: MACHINE (voice_duration: %d, greeting: %d)\n",
 			vad->voice_duration,
@@ -284,7 +284,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 	if (vad->voice_duration >= globals.minimum_word_length) {
 		if (vad->silence_duration) {
 			switch_log_printf(
-				SWITCH_CHANNEL_SESSION_LOG(vad->session),
+				SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 				SWITCH_LOG_DEBUG,
 				"AMD: Detected Talk, previous silence duration: %dms\n",
 				vad->silence_duration);
@@ -296,7 +296,7 @@ static switch_bool_t amd_handle_voiced_frame(amd_vad_t *vad, const switch_frame_
 	if (vad->voice_duration >= globals.minimum_word_length && !vad->in_greeting) {
 		if (vad->silence_duration) {
 			switch_log_printf(
-				SWITCH_CHANNEL_SESSION_LOG(vad->session),
+				SWITCH_CHANNEL_SESSION_LOG((switch_core_session_t *)vad->session),
 				SWITCH_LOG_DEBUG,
 				"AMD: Before Greeting Time (silence_duration: %d, voice_duration: %d)\n",
 				vad->silence_duration,
@@ -318,7 +318,7 @@ SWITCH_STANDARD_APP(amd_start_function)
 	switch_frame_t *read_frame;
 	switch_status_t status;
 	uint32_t timeout_ms = globals.total_analysis_time;
-	int32_t sample_count_limit;
+	int32_t sample_count_limit = 0;
 	switch_bool_t complete = SWITCH_FALSE;
 
 	amd_vad_t vad = { 0 };
